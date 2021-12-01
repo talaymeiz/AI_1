@@ -9,66 +9,66 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Scanner;
 
-public class BMmain {
+public class Ex1 {
 
-    public static String[][] readfile(String s){
+    static int multip=0;
+    static int addit=0;
+
+    public static String[] readfile(){
         String[] xml= new String[1];
-        ArrayList<String> baseboll= new ArrayList();
-        ArrayList<String> elimination= new ArrayList();
+        ArrayList<String> datas= new ArrayList();
+//        ArrayList<String> elimination= new ArrayList();
         try {
-            File file = new File(s);
+            File file = new File("input.txt");
             Scanner myReader = new Scanner(file);
             xml[0]= myReader.nextLine();
             while (myReader.hasNextLine()) {
                 String data = myReader.nextLine();
-                if (data.charAt(0)==('P')){
-                    elimination.add(data);
-                }
-                else{
-                    baseboll.add(data);
-                }
+                datas.add(data);
             }
             myReader.close();
         } catch (FileNotFoundException e) {
             System.out.println("An error occurred.");
             e.printStackTrace();
         }
-        String[] basearr = baseboll.toArray(String[]::new);
-        String[] elimarr = elimination.toArray(String[]::new);
+        String[] data = datas.toArray(String[]::new);
+        return data;
+    }
 
-        String[][] str={ xml, basearr, elimarr};
-        return str;
+    public static void write(String s) {
+        try {
+            FileWriter myWriter = new FileWriter("output.txt");
+            myWriter.write(s);
+            myWriter.close();
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static ArrayList<Variable> basebollS(String str, Variables variables){
 
-        //System.out.println("############");
-        //System.out.println(str);
-
-
         ArrayList<Variable> var= new ArrayList();
 
         String[] part1 = str.split("-");
-        //System.out.println(Arrays.toString(part1));
         var.add(variables.getvar(part1[0]));
         String[] part2 = part1[1].split("\\|");
-        //System.out.println(Arrays.toString(part2));
         var.add(variables.getvar(part2[0]));
-        String[] part3 = part2[1].split(",");
-        //System.out.println(Arrays.toString(part3));
+        if (part2.length>1) {
+            String[] part3 = part2[1].split(",");
 
-
-        for(int i=0; i<part3.length; i++){
-            String[] part4 = part3[i].split("=");
-            var.add(variables.getvar(part4[0]));
+            for (int i = 0; i < part3.length; i++) {
+                String[] part4 = part3[i].split("=");
+                var.add(variables.getvar(part4[0]));
+            }
         }
-        //System.out.println(var);
         return var;
     }
 
@@ -178,7 +178,6 @@ public class BMmain {
         ArrayList<Variable> c=new ArrayList<Variable>(); //hidens
         Object[] el =new Object[3];
 
-        System.out.println(str);
 
         str= str.replace("P", ",");
         str= str.replace("(", ",");
@@ -189,8 +188,6 @@ public class BMmain {
         String[] part= str.split(",");
         String[] parts= new String[part.length-3];
         int k=0;
-
-        System.out.println(Arrays.toString(part));
 
         for (int i=0; i<part.length; i++){
             if (!(part[i].equals("")) && k<parts.length) {
@@ -203,8 +200,6 @@ public class BMmain {
         Variable q= variables.getvar(quiry[0]);
         a[0]=q;
         a[1]=quiry[1];
-
-        System.out.println(Arrays.toString(parts));
 
         if (!(str.charAt(str.indexOf('|')+1)==')')){
             for(int i=1;i<parts.length-1;i++){
@@ -221,11 +216,7 @@ public class BMmain {
 
 
         String[] hidens= parts[parts.length-1].split("-");
-        System.out.println(Arrays.toString(hidens));
         for (int i=0; i<hidens.length; i++){
-//            if (i==hidens.length-1) {
-//                hidens[i] = hidens[i].substring(0, hidens[i].length() - 1);
-//            }
             Variable v= variables.getvar(hidens[i]);
             c.add(v);
         }
@@ -233,15 +224,6 @@ public class BMmain {
         el[0]= a;
         el[1]= b;
         el[2]= c;
-
-        System.out.println("quiry:");
-        System.out.println(Arrays.toString(a));
-        System.out.println("evidance:");
-        System.out.println(Arrays.toString(b.get(0)));
-        System.out.println(Arrays.toString(b.get(1)));
-        System.out.println(Arrays.toString(b.get(2)));
-        System.out.println("hidens:");
-        System.out.println(c);
         return el;
     }
 
@@ -330,9 +312,9 @@ public class BMmain {
         return false;
     }
 
-    public static double[] algoEliminate(Variables variables, String str){
+    public static String algoEliminate(Variables variables, String str){
 
-        double[] ans= new double[3];
+        String[] ans= new String[3];
         ArrayList<Factor> factorsList=new ArrayList<>();
 
         ////////////////////////////////////////
@@ -359,6 +341,7 @@ public class BMmain {
 
         String[] quiry= parts[0].split("=");
         Variable q= variables.getvar(quiry[0]);
+
         a[0]=q;
         a[1]=quiry[1];
 
@@ -400,6 +383,7 @@ public class BMmain {
 
         for (int i=0; i<variables.variables.size(); i++){ //faind if the ansuer in a cpt
             Factor f = new Factor(variables.variables.get(i), variables);
+
             if(ifansinCPT(f,q,evs,variables)){
                 return ansinCPT(f,str,variables);
             }
@@ -482,16 +466,22 @@ public class BMmain {
         double an=0;
         for (int i=0;i<ff.metrix.length; i++){
             sum=sum+ (double) ff.metrix[i][1];
+            addit++;
             if (ff.metrix[i][0].equals(quiry[1])){
                 an =(double) ff.metrix[i][1];
             }
         }
-        ans[0]= an/sum;
+        ans[0]= String.format("%.5f", an/sum);
+        ans[1]= String.valueOf(addit-1); //because he take one more in the normalization, 6 rows above
+        ans[2]= String.valueOf(multip);
 
-        return ans;
+        addit=0;
+        multip=0;
+        String answer=ans[0]+","+ans[1]+","+ans[2];
+        return answer;
     }
 
-    public static double[] ansinCPT(Factor cpt, String str, Variables variables){
+    public static String ansinCPT(Factor cpt, String str, Variables variables){
 
         Object[] a=new Object[2]; //query, ev
         ArrayList<Variable> b1=new ArrayList<>(); //evidance
@@ -506,7 +496,6 @@ public class BMmain {
         String[] part= str.split(",");
         String[] parts= new String[part.length-3];
         int k=0;
-        System.out.println(Arrays.toString(part));
         for (int i=0; i<part.length; i++){
             if (!(part[i].equals("")) && k<parts.length) {
                 parts[k]= part[i];
@@ -521,7 +510,6 @@ public class BMmain {
 
         ArrayList<String> evOutcome= new ArrayList<>();
         String evidanceName="";
-        System.out.println(Arrays.toString(parts));
         if (parts[2]!=null){
             for(int i=1;i<parts.length-1;i++){
                 String[] evidance= parts[i].split("=");
@@ -536,26 +524,19 @@ public class BMmain {
             b2 = null;
         }
         String s="";
-        System.out.println(b1);
-        System.out.println("###");
+
         for(int i=0; i<cpt.vars.length; i++){
             String e=cpt.vars[i].name;
-            System.out.println("cpt:"+e);
             int flagflag=0;
             for (int j=0; j<b1.size(); j++){
                 if(e.equals(b1.get(j).name)){
-                    System.out.println("1");
-                    System.out.println("she ev:"+b1.get(j).name);
                     s=s+b2.get(j);
                 }
                 if(q.name.equals(e)&& flagflag==0){
-                    System.out.println("2");
-                    System.out.println("q:"+q.name);
                     s=s+quiry[1];
                     flagflag++;
                 }
             }
-            System.out.println("s:"+s);
         }
 
         double ans=-1;
@@ -566,27 +547,38 @@ public class BMmain {
                 ans= (double) cpt.metrix[i][cpt.metrix[0].length-1];
             }
         }
-        double[] an= new double[3];
-        an[0]= ans;
-        an[1]= 0.0;
-        an[2]= 0.0;
+        String[] an= new String[3];
+        an[0]= String.format("%.5f", ans);
+        an[1]= String.valueOf(0.0); //because he take one more in the normalization, 6 rows above
+        an[2]= String.valueOf(0.0);
 
-        return an;
-
+        addit=0;
+        multip=0;
+        String answer=an[0]+","+an[1]+","+an[2];
+        return answer;
     }
 
     public static boolean ifansinCPT(Factor cpt, Variable query, String[] ev, Variables variables){
 
         Variable[] evs=new Variable[ev.length];
+
         for(int i=0; i<evs.length;i++){
             evs[i]=variables.getvar(ev[i]);
         }
-
         int numcpt= cpt.vars.length;
         int numsh= evs.length+1;
         if(numcpt!=numsh){
             return false;
         }
+        if(evs[0]==null){
+            if(query.name.equals(cpt.vars[0].name) && numcpt==1){
+                return true;
+            }
+            else{
+                return false;
+            }
+        }
+
         int flag=0;
         for (int i=0; i<cpt.vars.length; i++){
             String namecpt= cpt.vars[i].name;
@@ -737,6 +729,7 @@ public class BMmain {
                     double a1= (double) metrix[i1][metrix[0].length - 1];
                     double a2= (double) b.metrix[i][b.metrix[0].length - 1];
                     metrix[i1][metrix[0].length - 1] = a1*a2;
+                    multip++;
                 }
             }
         }
@@ -745,20 +738,7 @@ public class BMmain {
         for (int i=0; i<vars.size(); i++){
             var[i]=vars.get(i);
         }
-//        String metrixp= "";
-//        for(int i=0; i<vars.size(); i++)
-//            metrixp= metrixp+vars.get(i).name+",";
-//        System.out.println(metrixp);
-//
-//        String metrixv= "";
-//        for(int i=0; i<metrix.length; i++)
-//            metrixv= metrixv+Arrays.toString(metrix[i])+"\n";
-//        System.out.println(metrixv);
-//
-//        System.out.println(Arrays.toString(where.get("C3")));
-//        System.out.println(Arrays.toString(where.get("A2")));
-//        System.out.println(Arrays.toString(where.get("B0")));
-//        System.out.println(Arrays.toString(where.get("B1")));
+
         Factor factor= new Factor(metrix,var);
         return factor;
         }
@@ -800,6 +780,7 @@ public class BMmain {
                 }
             }
             metrix1[i][metrix1[0].length - 1]=sum;
+            addit++;
         }
 
         int l=0;
@@ -834,13 +815,9 @@ public class BMmain {
 
     private static final String FILENAME = "C:\\Users\\talia\\year2\\BM/big_net.xml";
 
-
     public static void main(String[] args) {
 
-            String[][] data= readfile("C:\\Users\\talia\\IdeaProjects\\BM\\src\\input.txt");
-            System.out.println(Arrays.toString(data[0]));
-            System.out.println(Arrays.toString(data[1]));
-            System.out.println(Arrays.toString(data[2]));
+            String[] data= readfile();//C:\Users\talia\IdeaProjects\BM\src\
 
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 
@@ -862,8 +839,6 @@ public class BMmain {
                     Node node2 = list_def.item(temp);
 
                     Variable variable = new Variable(node1, node2);
-                    System.out.println(variable);
-
                     for (int i=0; i<variable.parents.size(); i++){
 
                     }
@@ -872,17 +847,36 @@ public class BMmain {
                 }
                 variables.addchaild();
 
-//                String baseboll_ans1= baseboll("C2-A3|B3=T,C1=T", variables);
-//                System.out.println(baseboll_ans1);
+                String ans="";
+                for (int i=0; i<data.length; i++){
+                    String s=data[i];
+                    if(s.charAt(0)=='P'){
+                        String eliminate= algoEliminate(variables,s);
+                        ans= ans+ eliminate+ "\n";
+                    }
+                    else {
+                        String baseboll= baseboll(s, variables);
+                        ans= ans+ baseboll+ "\n";
+                    }
+                }
+                write(ans);
+
+//                Factor f1= new Factor(variables.getvar("C3"),variables);
+//                System.out.println(f1);
+//                Factor f2= new Factor(variables.getvar("A2"),variables);
+//                System.out.println(f2);
+//                Factor f3= new Factor(variables.getvar("B1"),variables);
+//                System.out.println(f3);
 //
-//                double[] a= algoEliminate(variables, "P(A2=T|C2=v1) D1-C1-B0-A1-B1-A3-C3-B2-B3");
-//                System.out.println(Arrays.toString(a));
-
-                Factor f2= new Factor(variables.getvar("C2"),variables);
-                System.out.println(f2);
-
-                double[] t= ansinCPT(f2,"P(B3=T|B2=F,C2=v1) A1-A2-D1",variables);
-                System.out.println(Arrays.toString(t));
+//                ArrayList<Factor> f= new ArrayList<>();
+//                f.add(f1);
+//                f.add(f2);
+//                f.add(f3);
+//
+//                Factor[] arr= sortF(f);
+//                for(int i=0; i<arr.length; i++){
+//                    System.out.println(arr[i].query.name);
+//                }
 
             } catch (ParserConfigurationException | SAXException | IOException e) {
                 e.printStackTrace();

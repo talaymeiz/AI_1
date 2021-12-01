@@ -54,8 +54,6 @@ public class Factor {
         for (int j=cpt[0].length-2; j>-1; j--){
             y=0;
             Variable v= this.perent[j];
-            System.out.println(v.name);
-            System.out.println("colmn:"+j);
             for (int i=0; i<rows; i++){
                 if (i % f == 0)
                     y =y+1;
